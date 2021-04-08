@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body,html{
+            background:#000;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        .fireworks{
+            position:absolute;
+            border-radius: 50%;
+        }
+        .patch{
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            position:absolute;
+        }
+    </style>
+</head>
+<body>
+    <script src="./move.js"></script>
+    <script>
+        //分析：烟花的属性：位置、大小
+        class Fireworks{
+            constructor(x,y,w=10,h=20){
+                this.x = x
+                this.y = y 
+                this.w = w
+                this.h = h
+                this.initPosition = document.body.offsetHeight
+                //新增属性保存烟花碎片
+                this.patch = []
+            }
+            init(){
+                //创建烟花
+                this.createFire()
+                //烟花升起----然后爆炸
+                this.firemove(this.boom.bind(this))
+            }
+            boom(){
+                //随机创建40-60烟花碎片
+                let num = this.getRan(40,60)
+                for(let i=0;i<num;i++){
+                    this.createPatch()
+                }
+                //让烟花变成背景色
+                this.setStyle(this.element,{
+                    background:'#000'
+                })
+                //碎片运动
+                this.patchMove()
+               
+            }
+            patchMove(){
+                this.timer = setInterval(()=>{
+                    this.patch.forEach(item=>{
+                        //拿到每个碎片让其运动
+                        
+                        item.iSpeedY+=0.3
+                        //求每个碎片的当前值
+                        this.setStyle(item,{
+                            left:item.offsetLeft+item.iSpeedX+'px',
+                            top:item.offsetTop+item.iSpeedY+'px',
+                            })
+                    })
+                },20)
+                setTimeout(()=>{
+                    //碎片停止运动，并且移除元素
+                    clearInterval(this.timer)
+                    this.element.remove()
+                },1000)
+            }
+            createPatch(){
+                const obj = document.createElement('div')
+                obj.classList.add('patch')
+
+                this.setStyle(obj,{
+                    background:this.setBg()
+                })
+                //给每个碎片添加速度
+                //利用Math.random()和0.5的来确定向左还是向右走----确定碎片运动的方向
+                obj.iSpeedX = Math.random()>0.5?this.getRan(1,10):-this.getRan(1,10)
+                obj.iSpeedY = Math.random()>0.5?this.getRan(1,10):-this.getRan(1,10)
+                this.element.appendChild(obj)
+                this.patch.push(obj)
+            }
+            createFire(){
+                this.element = document.createElement('div');
+                //给当前烟花元素添加fireworks类
+                this.element.classList.add('fireworks');
+                //设置烟花样式
+                this.setStyle(this.element,{
+                    left:this.x+'px',
+                    top:this.initPosition-20+'px',
+                    width:this.w+'px',
+                    height:this.h+'px',
+                    background:this.setBg()
+                })
+                //把元素添加到页面上
+                document.body.appendChild(this.element)
+            }
+            firemove(fn){
+                move(this.element,{'top':this.y},fn)
+            }
+            setStyle(el,json){
+                for(let [key,value] of Object.entries(json)){
+                    Reflect.set(el.style,key,value)
+                }
+            }
+            getStyle(ele,attr){
+                return parseInt(getComputedStyle(ele)[attr])
+            }
+            getRan(min,max){
+                return Math.floor(Math.random()*(max+1-min)+min)
+            }
+            setBg(){
+                return `rgba(${this.getRan(0,255)},${this.getRan(0,255)},${this.getRan(0,255)})`
+            }
+
+        }
+        document.onclick = function(e){
+            new Fireworks(e.clientX,e.clientY).init()
+        }
+    </script>
+</body>
+</html>
